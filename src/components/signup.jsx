@@ -12,7 +12,7 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { signUp } from "../services/authService";
-
+import { Link as RouterLink } from "react-router-dom";
 function Copyright(props) {
   return (
     <Typography
@@ -22,7 +22,7 @@ function Copyright(props) {
       {...props}
     >
       {"Copyright © "}
-      <Link color="inherit" href="https://mui.com/">
+      <Link color="inherit" href="#">
         Blue
       </Link>{" "}
       {new Date().getFullYear()}
@@ -30,6 +30,12 @@ function Copyright(props) {
     </Typography>
   );
 }
+
+const rightLink = {
+  fontSize: 16,
+  color: "common.white",
+  ml: 2,
+};
 
 const theme = createTheme();
 
@@ -119,7 +125,13 @@ export default function SignUp() {
             </Button>
             <Grid container justifyContent="flex-end">
               <Grid item>
-                <Link href="/signin" variant="body2">
+                <Link
+                  variant="h6"
+                  underline="none"
+                  to="/signin/"
+                  sx={{ ...rightLink, color: "secondary.main" }}
+                  component={RouterLink}
+                >
                   Already have an account? Sign in
                 </Link>
               </Grid>

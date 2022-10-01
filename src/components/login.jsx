@@ -12,7 +12,7 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { signIn } from "../services/authService";
-
+import { Link as RouterLink } from "react-router-dom";
 import auth from "../services/authService";
 
 function Copyright(props) {
@@ -32,6 +32,12 @@ function Copyright(props) {
     </Typography>
   );
 }
+
+const rightLink = {
+  fontSize: 16,
+  color: "common.white",
+  ml: 3,
+};
 
 const theme = createTheme();
 
@@ -98,12 +104,22 @@ export default function SignIn(props) {
             </Button>
             <Grid container>
               <Grid item xs>
-                <Link href="#" variant="body2">
-                  Forgot password?
+                <Link
+                  to="/password-reset/"
+                  variant="body2"
+                  component={RouterLink}
+                >
+                  Forgot password ?
                 </Link>
               </Grid>
               <Grid item>
-                <Link href="#" variant="body2">
+                <Link
+                  variant="h6"
+                  underline="none"
+                  to="/signup/"
+                  sx={{ ...rightLink, color: "secondary.main" }}
+                  component={RouterLink}
+                >
                   {"Don't have an account? Sign Up"}
                 </Link>
               </Grid>

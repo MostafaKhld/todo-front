@@ -2,13 +2,11 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import _ from "lodash";
-import { v4 } from "uuid";
 import Box from "@mui/material/Box";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import TextField from "@mui/material/TextField";
 import Backdrop from "@mui/material/Backdrop";
-import ListItemText from "@mui/material/ListItemText";
 import Fade from "@mui/material/Fade";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
@@ -16,12 +14,7 @@ import Modal from "@mui/material/Modal";
 import Grid from "@mui/material/Unstable_Grid2";
 import { saveTodo, getTodo } from "../services/todoService";
 import MenuItem from "@mui/material/MenuItem";
-import { styled } from "@mui/material/styles";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import IconButton from "@mui/material/IconButton";
+
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import { deleteTodo } from "./../services/todoService";
 import EditIcon from "@mui/icons-material/Edit";
@@ -63,6 +56,7 @@ function Todo() {
     },
   });
   const [open, setOpen] = useState(false);
+  const [_id, setId] = useState("");
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   async function populateTodos() {
@@ -82,7 +76,6 @@ function Todo() {
 
     setState(oldState);
   }
-  const [text, setText] = useState("");
 
   const [Priority, setPriority] = useState("");
 
@@ -127,48 +120,30 @@ function Todo() {
     await saveTodo(itemCopy);
   };
 
-  const addItem = (todo) => {
-    setState((prev) => {
-      return {
-        ...prev,
-        Todo: {
-          title: "Todo",
-          items: [
-            {
-              _id: todo._id,
-              tile: todo.title,
-              description: todo.description,
-            },
-            ...prev.todo.items,
-          ],
-        },
-      };
-    });
-
-    setText("");
-  };
-
   const handleDelete = async (todo) => {
     await deleteTodo(todo._id);
     await populateTodos();
   };
 
   const handleEdit = async (todo) => {
-    await deleteTodo(todo._id);
-    await populateTodos();
+    setId(todo._id);
+    handleOpen();
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     const x = new FormData(event.currentTarget);
     try {
-      const { data } = await saveTodo({
+      await saveTodo({
+        _id: _id,
         title: x.get("title"),
         description: x.get("description"),
         priority: Priority,
       });
 
       toast.success("Added");
+      handleClose();
+      setId("");
       populateTodos();
     } catch (ex) {
       if (ex.response) {

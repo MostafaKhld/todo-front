@@ -1,7 +1,7 @@
 import axios from "axios";
 import logger from "./logService";
 
-import auth, { logout } from "./authService";
+import auth from "./authService";
 import { toast } from "react-toastify";
 
 axios.interceptors.response.use(null, (error) => {

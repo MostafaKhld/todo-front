@@ -11,9 +11,10 @@ export function saveTodo(data) {
     const body = { ...data };
     delete body._id;
     return http.put(apiEndpoint + data._id, body);
+  } else {
+    delete data._id;
+    return http.post(apiEndpoint, data);
   }
-
-  return http.post(apiEndpoint, data);
 }
 
 export function deleteTodo(id) {
