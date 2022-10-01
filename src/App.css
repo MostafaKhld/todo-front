@@ -8,28 +8,54 @@
   justify-content: space-around;
 }
 
-.App .column {
-  width: 30%;
+.column {
+  width: 17%;
+  margin: 18px;
+  text-align: center;
 }
 
 .droppable-col {
   width: 100%;
-  background-color: gray;
+  background-color: skyblue;
   padding: 10px 10px 0 10px;
   border-radius: 7px;
   display: flex;
   flex-direction: column;
+  margin-left:10px;
+  margin-right:10px;
+  min-height: 20%;
+  height: 100%;
 }
 
 .item {
   margin-bottom: 10px;
-  background-color: gray;
+  background-color: rgb(29, 1, 141);
   color: white;
-  border: 1px solid white;
+  border: 3px solid #efefef;
   padding: 5px;
-  border-radius: 7px;
+  border-radius: 5px;
+  margin-bottom: 3px;
+  margin-top: 3px;
 }
 
 .item.dragging {
   background-color: coral;
+}
+
+.task{
+  border-radius: 5px;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #939697;
+  cursor: pointer;
+  background-color: #006b7d;
+  height: 50px;
+  margin-bottom: 8px;
+  padding: 5px 10px;
+  display: flex;
+}
+.task span{
+  font-family: 'Poppins',sans-serif;
+  font-size: 15px;
+  font-weight: 400;
 }

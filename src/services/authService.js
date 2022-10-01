@@ -1,25 +1,25 @@
 import jwtDecode from "jwt-decode";
 import http from "./httpService";
 
-const apiEndpoint = "/users/login/";
+const apiEndpoint = "/auth/";
 const tokenKey = "token";
-const tokenref = "tokenref";
 
 http.setJwt(getJwt());
 
-export async function login(username, password) {
-  const { data } = await http.post(apiEndpoint, { username, password });
-  localStorage.setItem(tokenKey, data.access);
-  localStorage.setItem(tokenref, data.refresh);
+export async function signIn(username, password) {
+  const { data } = await http.post(apiEndpoint + "signin/", {
+    username,
+    password,
+  });
+  localStorage.setItem(tokenKey, data.accessToken);
 }
 
-export function loginWithJwt(token) {
+export function signInWithJwt(token) {
   localStorage.setItem(tokenKey, token);
 }
 
 export function logout() {
   localStorage.removeItem(tokenKey);
-  localStorage.removeItem(tokenref);
 }
 
 export function getCurrentUser() {
@@ -32,24 +32,23 @@ export function getCurrentUser() {
   }
 }
 
-export async function RefreshToken() {
-  const jwt = localStorage.getItem(tokenref);
-
-  const { data } = await http.post("/users/token/refresh/", {
-    refresh: jwt,
-  });
-  localStorage.setItem(tokenKey, data.access);
-  localStorage.setItem(tokenref, data.refresh);
-}
-
 export function getJwt() {
   return localStorage.getItem(tokenKey);
 }
 
+export async function signUp(data) {
+  await http.post(apiEndpoint + "signUp/", data);
+}
+export async function verifyUser(code) {
+  await http.get(apiEndpoint + "confirm/" + code);
+}
+
 export default {
-  login,
-  loginWithJwt,
+  signUp,
+  signIn,
+  signInWithJwt,
   logout,
   getCurrentUser,
   getJwt,
+  verifyUser,
 };

@@ -1,37 +1,99 @@
-import React, { useState } from "react";
-
+import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import _ from "lodash";
 import { v4 } from "uuid";
+import Box from "@mui/material/Box";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import TextField from "@mui/material/TextField";
+import Backdrop from "@mui/material/Backdrop";
+import ListItemText from "@mui/material/ListItemText";
+import Fade from "@mui/material/Fade";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Modal from "@mui/material/Modal";
+import Grid from "@mui/material/Unstable_Grid2";
+import { saveTodo, getTodo } from "../services/todoService";
+import MenuItem from "@mui/material/MenuItem";
+import { styled } from "@mui/material/styles";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import IconButton from "@mui/material/IconButton";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import { deleteTodo } from "./../services/todoService";
+import EditIcon from "@mui/icons-material/Edit";
 
-const item = {
-  id: v4(),
-  name: "Clean the house",
-};
-
-const item2 = {
-  id: v4(),
-  name: "Wash the car",
+const style = {
+  position: "absolute",
+  top: "40%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  borderRadius: "5px",
+  boxShadow: 24,
+  p: 4,
 };
 
 function Todo() {
-  const [text, setText] = useState("");
   const [state, setState] = useState({
-    todo: {
-      title: "Todo",
-      items: [item, item2],
-    },
-    "in-progress": {
-      title: "In Progress",
+    TODO: {
+      title: "TODO",
       items: [],
     },
-    done: {
+    INProgress: {
+      title: "IN progress",
+      items: [],
+    },
+    UnderReview: {
+      title: "Under-Review",
+      items: [],
+    },
+    Rework: {
+      title: "Rework",
+      items: [],
+    },
+    Completed: {
       title: "Completed",
       items: [],
     },
   });
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  async function populateTodos() {
+    const { data } = await getTodo();
+    let oldState = { ...state };
+    oldState["TODO"] = data.TODO ? data.TODO : oldState["TODO"];
+    oldState["INProgress"] = data.INProgress
+      ? data.INProgress
+      : oldState["INProgress"];
+    oldState["UnderReview"] = data.UnderReview
+      ? data.UnderReview
+      : oldState["UnderReview"];
+    oldState["Rework"] = data.Completed ? data.Rework : oldState["Rework"];
+    oldState["Completed"] = data.Completed
+      ? data.Completed
+      : oldState["Completed"];
 
-  const handleDragEnd = ({ destination, source }) => {
+    setState(oldState);
+  }
+  const [text, setText] = useState("");
+
+  const [Priority, setPriority] = useState("");
+
+  const handleChange = (event) => {
+    setPriority(event.target.value);
+  };
+  useEffect(() => {
+    populateTodos();
+  }, []);
+  const handleDragEnd = async ({ destination, source }) => {
+    console.log(destination);
     if (!destination) {
       return;
     }
@@ -44,8 +106,9 @@ function Todo() {
     }
 
     // Creating a copy of item before removing it from state
-    const itemCopy = { ...state[source.droppableId].items[source.index] };
-
+    let itemCopy = { ...state[source.droppableId].items[source.index] };
+    console.log(state[source.droppableId]);
+    console.log(state[destination.droppableId]);
     setState((prev) => {
       prev = { ...prev };
       // Remove from previous items array
@@ -57,21 +120,24 @@ function Todo() {
         0,
         itemCopy
       );
+      itemCopy.status = destination.droppableId;
 
       return prev;
     });
+    await saveTodo(itemCopy);
   };
 
-  const addItem = () => {
+  const addItem = (todo) => {
     setState((prev) => {
       return {
         ...prev,
-        todo: {
+        Todo: {
           title: "Todo",
           items: [
             {
-              id: v4(),
-              name: text,
+              _id: todo._id,
+              tile: todo.title,
+              description: todo.description,
             },
             ...prev.todo.items,
           ],
@@ -82,64 +148,218 @@ function Todo() {
     setText("");
   };
 
+  const handleDelete = async (todo) => {
+    await deleteTodo(todo._id);
+    await populateTodos();
+  };
+
+  const handleEdit = async (todo) => {
+    await deleteTodo(todo._id);
+    await populateTodos();
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const x = new FormData(event.currentTarget);
+    try {
+      const { data } = await saveTodo({
+        title: x.get("title"),
+        description: x.get("description"),
+        priority: Priority,
+      });
+
+      toast.success("Added");
+      populateTodos();
+    } catch (ex) {
+      if (ex.response) {
+        toast.error(ex.response.data.message);
+      }
+    }
+  };
+
   return (
-    <div className="App">
-      <div>
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <button onClick={addItem}>Add</button>
-      </div>
-      <DragDropContext onDragEnd={handleDragEnd}>
-        {_.map(state, (data, key) => {
-          return (
-            <div key={key} className={"column"}>
-              <h3>{data.title}</h3>
-              <Droppable droppableId={key}>
-                {(provided, snapshot) => {
-                  return (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className={"droppable-col"}
-                    >
-                      {data.items.map((el, index) => {
-                        return (
-                          <Draggable
-                            key={el.id}
-                            index={index}
-                            draggableId={el.id}
-                          >
-                            {(provided, snapshot) => {
-                              console.log(snapshot);
-                              return (
-                                <div
-                                  className={`item ${
-                                    snapshot.isDragging && "dragging"
-                                  }`}
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                >
-                                  {el.name}
-                                </div>
-                              );
-                            }}
-                          </Draggable>
-                        );
-                      })}
-                      {provided.placeholder}
-                    </div>
-                  );
-                }}
-              </Droppable>
-            </div>
-          );
-        })}
-      </DragDropContext>
-    </div>
+    <>
+      <Box component="div" sx={{ p: 1, m: 1 }}>
+        {/* <button onClick={addItem}>Add</button> */}
+        <Button onClick={handleOpen} variant="contained" color="secondary">
+          New Task
+        </Button>
+      </Box>
+      <Grid container spacing={1}>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          {_.map(state, (data, key) => {
+            return (
+              <List
+                key={key}
+                className={"column"}
+                style={{ marginRight: "5px" }}
+              >
+                <h3>{data.title}</h3>
+                <Droppable droppableId={key} style={{ paddingBottom: "10px" }}>
+                  {(provided, snapshot) => {
+                    return (
+                      <ListItem
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={"droppable-col"}
+                        disablePadding
+                      >
+                        {data.items.map((el, index) => {
+                          return (
+                            <Draggable
+                              key={el._id}
+                              index={index}
+                              draggableId={el._id}
+                            >
+                              {(provided, snapshot) => {
+                                return (
+                                  <Grid
+                                    container
+                                    spacing={1}
+                                    margin={1}
+                                    className={`item  ${
+                                      snapshot.isDragging && "dragging"
+                                    }`}
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                  >
+                                    <Grid item xs={12}>
+                                      {el.title}
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                      Description: {el.description}
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                      Priority: {el.priority}
+                                    </Grid>
+                                    <Grid item>
+                                      <Button
+                                        variant="contained"
+                                        color="warning"
+                                        onClick={() => handleEdit(el)}
+                                      >
+                                        {" "}
+                                        <EditIcon />
+                                      </Button>
+                                    </Grid>
+                                    <Grid justifyContent="flex-end" item>
+                                      <Button
+                                        variant="contained"
+                                        color="error"
+                                        onClick={() => handleDelete(el)}
+                                      >
+                                        {" "}
+                                        <DeleteForeverIcon />
+                                      </Button>
+                                    </Grid>
+                                  </Grid>
+                                );
+                              }}
+                            </Draggable>
+                          );
+                        })}
+                        {provided.placeholder}
+                      </ListItem>
+                    );
+                  }}
+                </Droppable>
+              </List>
+            );
+          })}
+        </DragDropContext>
+      </Grid>
+
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        open={open}
+        onClose={handleClose}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+        }}
+      >
+        <Fade in={open}>
+          <Box sx={style}>
+            <Typography id="transition-modal-title" variant="h5" component="h2">
+              New Todo
+            </Typography>
+            <hr></hr>
+            <Box
+              component="form"
+              noValidate
+              onSubmit={handleSubmit}
+              sx={{ mt: 3 }}
+            >
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    autoComplete="given-name"
+                    name="title"
+                    required
+                    fullWidth
+                    id="title"
+                    label="Title"
+                    autoFocus
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    id="description"
+                    label="Description "
+                    name="description"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    id="outlined-select-currency"
+                    select
+                    label="Priority"
+                    value={Priority}
+                    onChange={handleChange}
+                    helperText=""
+                    fullWidth
+                    required
+                  >
+                    <MenuItem key={"High"} value={"High"}>
+                      {"High"}
+                    </MenuItem>
+                    <MenuItem key={"Medium"} value={"Medium"}>
+                      {"Medium"}
+                    </MenuItem>
+                    <MenuItem key={"Low"} value={"Low"}>
+                      {"Low"}
+                    </MenuItem>
+                  </TextField>
+                  {/* <TextField
+                    required
+                    fullWidth
+                    name="priority"
+                    label="Priority"
+                    id="priority"
+                  /> */}
+                </Grid>
+              </Grid>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                color="success"
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Save
+              </Button>
+              <Grid container justifyContent="flex-end"></Grid>
+            </Box>
+          </Box>
+        </Fade>
+      </Modal>
+    </>
   );
 }
 

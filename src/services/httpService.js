@@ -26,7 +26,7 @@ axios.defaults.xsrfHeaderName = "X-CSRFToken";
 axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 
 function setJwt(jwt) {
-  axios.defaults.headers.common["AUTHORIZATION"] = `Bearer ${jwt}`;
+  axios.defaults.headers.common["x-access-token"] = jwt;
 }
 
 export default {
