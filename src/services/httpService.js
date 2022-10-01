@@ -21,8 +21,7 @@ axios.interceptors.response.use(null, (error) => {
   return Promise.reject(error);
 });
 
-axios.defaults.xsrfCookieName = "csrftoken";
-axios.defaults.xsrfHeaderName = "X-CSRFToken";
+
 axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 
 function setJwt(jwt) {
