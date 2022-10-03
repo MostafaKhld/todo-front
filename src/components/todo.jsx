@@ -69,7 +69,7 @@ function Todo() {
     oldState["UnderReview"] = data.UnderReview
       ? data.UnderReview
       : oldState["UnderReview"];
-    oldState["Rework"] = data.Completed ? data.Rework : oldState["Rework"];
+    oldState["Rework"] = data.Rework ? data.Rework : oldState["Rework"];
     oldState["Completed"] = data.Completed
       ? data.Completed
       : oldState["Completed"];
